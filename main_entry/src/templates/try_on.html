@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Demo</title>
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body">
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a class="active" href="/try-on">Try-on</a></li>
+    </ul>
+
+    <h1>Try-on</h1>
+
+    <div id="nguyen">
+        <div id="nguyen-input-container">
+            <div id="nguyen-ref-image-container" class="input-div">
+                <p class="text-center">Reference image</p>
+                <img id="nguyen-ref-image" class="center image-fit-parent">
+                <input type="file" id="nguyen-ref-image-uploader" class="image-uploader" accept="image/*"
+                    onChange="uploadReferenceImageInternal(this, 'nguyen-ref-image')">
+                <button class="center" onclick="uploadReferenceImage('nguyen-ref-image-uploader')">Upload image</button>
+            </div>
+            <div id="nguyen-cloth-image-container" class="input-div">
+                <p class="text-center">Cloth image</p>
+                <img id="nguyen-cloth-image" class="center image-fit-parent">
+                <input type="file" id="nguyen-cloth-image-uploader" class="image-uploader" accept="image/*"
+                    onChange="uploadReferenceImageInternal(this, 'nguyen-cloth-image')">
+                <button class="center" onclick="uploadReferenceImage('nguyen-cloth-image-uploader')">Upload
+                    image</button>
+            </div>
+        </div>
+        <div id="nguyen-result-container" style="clear:both;padding-top:30px;">
+            <button onclick="tryOn()" class="center">Try on</button>
+            <p class="text-center">Result here</p>
+            <img id="nguyen-result-image" class="center image-fit-parent">
+        </div>
+
+    </div>
+
+    <script src="/static/js/try_on.js"></script>
+    </body>
+
+
+</html>

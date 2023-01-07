@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Demo</title>
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body">
+    <ul>
+        <li><a class="active" href="/">Home</a></li>
+        <li><a href="/try-on">Try-on</a></li>
+    </ul>
+
+    <h1>Home</h1>
+
+    <div id="tung">
+        <div id="tung-input-container">
+            <div id="tung-ref-image-container" class="input-div">
+                <p class="text-center">Reference image</p>
+                <img id="tung-ref-image" class="center image-fit-parent">
+                <input type="file" id="tung-image-uploader" accept="image/*" class="image-uploader"
+                    onChange="uploadReferenceImageInternal(this)">
+                <button class="center" onclick="uploadReferenceImage()">Upload image</button>
+            </div>
+            <div id="tung-caption-image-container" class="input-div">
+                <p class="text-center">Relative caption</p>
+                <input type="text" id="tung-caption-input" class="center" style="max-width: 50%;">
+            </div>
+        </div>
+        <div id="tung-result-container" style="clear:both;padding-top:30px;">
+            <button onclick="queryImages()" class="center">Query</button>
+            <p class="text-center">Result here</p>
+            <div id="tung-result-images" class="center" style="width: 50%;">
+            </div>
+
+        </div>
+
+        <script src="/static/js/script.js"></script>
+        </body>
+
+
+</html>
