@@ -1,28 +1,25 @@
-from fastapi import APIRouter, Request, UploadFile
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from io import BytesIO
+
+from fastapi import APIRouter, UploadFile
+from service import run_tryon
 
 
 router = APIRouter()
 
-@router.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # Get the original 'detail' list of errors
-    details = exc.errors()
-    error_details = []
 
-    for error in details:
-        error_details.append(
-            {
-                "error": error["msg"] + " " + str(error["loc"])
-            }
-        )
-    return JSONResponse(content={"message": error_details})
+@router.post('/try-on')
+async def try_on_cloth(person_image: UploadFile, cloth_image: UploadFile):
+    person_image_content = await person_image.read()
+    cloth_image_content = await cloth_image.read()
+    person = BytesIO(person_image_content)
+    cloth = BytesIO(cloth_image_content)
 
+    buffer = BytesIO()
+    pil_image = run_tryon(person, cloth)
+    pil_image.save(buffer, format='jpg')
+    image_bytes = buffer.getvalue()
 
-@router.post('/try-one-cloth')
-def try_one_cloth(person_image: UploadFile, cloth_image: UploadFile):
-    pass
+    return image_bytes
 
 
 

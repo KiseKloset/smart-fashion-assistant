@@ -1,6 +1,6 @@
 services:
-  web:
-    build: .
+  try-on-api:
+    build: ./try_on_api/
     restart: unless-stopped
     ports:
       - "8000:8000"
