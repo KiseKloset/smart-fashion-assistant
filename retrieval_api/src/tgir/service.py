@@ -28,9 +28,8 @@ combiner: Combiner = None
 dataset_name = "FashionIQ"
 base_path = str(FILE.parent.parent)
 data_path = f"{base_path}/dataset/fashioniq"
-pretrained_path = f"{base_path}/tgir/clip4cir"
-clip_pretrained_path = f"{pretrained_path}/fiq_clip_RN50x4_fullft.pt"
-comb_pretrained_path = f"{pretrained_path}/fiq_comb_RN50x4_fullft.pt"
+clip_pretrained_path = f"{base_path}/tgir/clip4cir/fiq_clip_RN50x4_fullft.pt"
+comb_pretrained_path = f"{base_path}/tgir/clip4cir/fiq_comb_RN50x4_fullft.pt"
 
 
 def get_device():
@@ -48,7 +47,7 @@ def get_data_type():
 def load_models() -> Tuple[nn.Module, Combiner]:
     device = get_device()
 
-    clip_model, _ = clip.load(f"{pretrained_path}/RN50x4.pt", device=device, jit=False)
+    clip_model, _ = clip.load("/code/app/src/tgir/clip4cir/RN50x4.pt", device=device, jit=False)
     clip_state_dict = torch.load(clip_pretrained_path, map_location=device)
     clip_model.load_state_dict(clip_state_dict["CLIP"])
 
@@ -134,7 +133,7 @@ def load_dataset_metadata() -> dict:
                 for image in images:
                     dataset_metadata[image] = {
                         "category": dress_type,
-                        "url": f"/static/{image}.png",
+                        "url": f"/static/images/{image}.png",
                     }
 
     return dataset_metadata
