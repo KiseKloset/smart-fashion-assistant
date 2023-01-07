@@ -1,6 +1,6 @@
 import io
 
-from fastapi import APIRouter, UploadFile, Request
+from fastapi import APIRouter, UploadFile, Request, Form, File
 from fastapi.responses import JSONResponse
 
 from service import compute_fashionIQ_results
@@ -8,7 +8,7 @@ from service import compute_fashionIQ_results
 router = APIRouter()
 
 @router.post("/retrieve")
-async def text_guided_image_retrieval(ref_image: UploadFile, caption: str, request: Request):
+async def text_guided_image_retrieval(ref_image: UploadFile = File(), caption: str = Form(), request: Request = None):
     ref_image_content = await ref_image.read()
     img = io.BytesIO(ref_image_content)
     results = compute_fashionIQ_results(
