@@ -81,7 +81,13 @@ function createResultImagesContainer(category, data) {
         image.style.maxHeight = "150px";
         image.src = data[i]["url"];
         image.id = data[i]["id"];
-        image.onclick = function () { choose(category, this); }
+        image.onclick = function () {
+            if (tryOnImages[category] === this.id) {
+                unchoose(category, this);
+            } else {
+                choose(category, this);
+            }
+        }
         container.appendChild(image);
     }
     return container;
@@ -96,4 +102,13 @@ function choose(category, element) {
     }
 
     element.style.border = "3px solid #ff0000";
+}
+
+function unchoose(category, element) {
+    delete tryOnImages[category];
+
+    let siblings = element.parentElement.children;
+    for (let i = 0; i < siblings.length; i++) {
+        siblings[i].style.border = "";
+    }
 }
