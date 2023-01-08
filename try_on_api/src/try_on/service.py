@@ -6,8 +6,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 
-import u2net.utils as u2nu
-import inference_flow_style_vton.utils as fsvu
+from .u2net import utils as u2nu
+from .inference_flow_style_vton import utils as fsvu
 
 
 u2net_model = None
@@ -16,10 +16,10 @@ fsvton_model = {
                 'gen': None,
             }
 
-u2net_pretrained_path = 'code/app/src/try_on/u2net/ckp/u2netp.pth'
+u2net_pretrained_path = 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\u2net\\ckp\\u2netp\\u2netp.pth'
 fsvton_pretrained_path = {
-                            'warp': 'code/app/src/try_on/inference_flow_style_vton/aug/PFAFN_warp_epoch_101.pth',
-                            'gen': 'code/app/src/try_on/inference_flow_style_vton/aug/PFAFN_gen_epoch_101.pth',
+                            'warp': 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\inference_flow_style_vton\\ckp\\aug\\PFAFN_warp_epoch_101.pth',
+                            'gen': 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\inference_flow_style_vton\\ckp\\aug\\PFAFN_gen_epoch_101.pth',
                         }
 
 
@@ -36,7 +36,7 @@ def load_models():
     fsvton_model = fsvu.load_model(checkpoints=fsvton_pretrained_path, device=device)
 
 
-def infer_u2net(image):
+def infer_u2net(images):
     device = get_device()
 
     # [c, h, w] -> [1, c, h, w] 
@@ -49,8 +49,7 @@ def infer_u2net(image):
     pred_mask = d1[:,0,:,:]
     pred_mask = u2nu.normPRED(pred_mask)
     
-    # [1, c, h, w] -> [c, h, w] 
-    return pred_mask[0, :]
+    return pred_mask
 
 
 def infer_tryon(images):
@@ -99,5 +98,5 @@ def run_tryon(person_image: bytes, cloth_image: bytes):
     return to_pil(result)
 
 
-if __name__=='__main__':
-    load_models()
+# load_models()
+load_models()

@@ -1,6 +1,6 @@
 import torch
 
-from u2net import U2NET, U2NETP  # 173.6 MB and 4.7 MB
+from .u2net import U2NET, U2NETP  # 173.6 MB and 4.7 MB
 
 
 # normalize the predicted SOD probability map

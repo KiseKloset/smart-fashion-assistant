@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from models.networks import ResUnetGenerator
-from models.afwm import AFWM
+from .models.afwm import AFWM
+from .models.networks import ResUnetGenerator
 
 
 def load_checkpoint(model, checkpoint_path, device=torch.device('cpu')):
