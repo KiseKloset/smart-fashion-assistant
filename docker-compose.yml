@@ -1,6 +1,6 @@
 services:
   tryon-api:
-    build: try_on_api/
+    build: tryon_api/
     restart: unless-stopped
     ports:
       - 8080:8080

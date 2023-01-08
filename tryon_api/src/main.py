@@ -3,13 +3,13 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 
-import try_on.router
+import tryon.router
 from config import settings
 
 
 app = FastAPI()
 
-app.include_router(try_on.router.router, prefix="/try-on")
+app.include_router(tryon.router.router, prefix="/try-on")
 
 
 @app.exception_handler(RequestValidationError)
