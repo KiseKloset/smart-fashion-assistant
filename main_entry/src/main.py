@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 
-from config import settings, retrieval_settings, tryon_settings
+from config import settings
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parent
@@ -18,15 +18,14 @@ app = FastAPI()
 @app.on_event('startup')
 async def startup_event():
     api_clients = {
-        'tgir': {'host': retrieval_settings.HOST, 'port': retrieval_settings.PORT},
-        'tryon': {'host': tryon_settings.HOST, 'port': tryon_settings.PORT}
+        'tgir': {'host': settings.HOST_RETRIEVAL, 'port': settings.PORT_RETRIEVAL},
+        'tryon': {'host': settings.HOST_TRYON, 'port': settings.PORT_TRYON}
     }
     for api_name, api_settings in api_clients.items():
         host = api_settings['host']
         port = api_settings['port']
         api = httpx.AsyncClient(base_url=f'http://{host}:{port}/')
-        app.state[api_name + '_api'] = api
-
+        setattr(app.state, api_name + "_api", api)
 
 
 @app.on_event('shutdown')
@@ -38,8 +37,8 @@ async def shutdown_event():
 
 
 # Set fashion retrieval reverse proxy
-async def _reverse_proxy(request: Request, api_name: str):
-    api = request.app.state[api_name]
+async def _retrieval_reverse_proxy(request: Request):
+    api = request.app.state.tgir_api
     url = httpx.URL(path=request.url.path, query=request.url.query.encode('utf-8'))
     req = api.build_request(
         request.method, url, headers=request.headers.raw, content=request.stream()
@@ -52,9 +51,25 @@ async def _reverse_proxy(request: Request, api_name: str):
         background=BackgroundTask(r.aclose)
     )
 
-app.add_route('/tgir/{path:path}', lambda request: _reverse_proxy(request, 'tgir_api'), ['POST'])
-app.add_route('/static/images/{image:path}', lambda request: _reverse_proxy(request, 'tgir_api'), ['GET'])
-app.add_route('/try-on/{path:path}', lambda request: _reverse_proxy(request, 'tryon_api'), ['POST'])
+app.add_route('/tgir/{path:path}', _retrieval_reverse_proxy, ['POST'])
+app.add_route('/static/images/{image:path}', _retrieval_reverse_proxy, ['GET'])
+
+
+# Set virtual tryon reverse proxy
+async def _retrieval_reverse_proxy(request: Request):
+    api = request.app.state.tryon_api
+    url = httpx.URL(path=request.url.path, query=request.url.query.encode('utf-8'))
+    req = api.build_request(
+        request.method, url, headers=request.headers.raw, content=request.stream()
+    )
+    r = await api.send(req, stream=True)
+    return StreamingResponse(
+        r.aiter_raw(),
+        status_code=r.status_code,
+        headers=r.headers,
+        background=BackgroundTask(r.aclose)
+    )
+app.add_route('/try-on/{path:path}', _retrieval_reverse_proxy, ['POST'])
 
 
 # Fashion retrieval entry
