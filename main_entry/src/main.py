@@ -24,8 +24,6 @@ async def startup_event():
     for api_name, api_settings in api_clients.items():
         host = api_settings['host']
         port = api_settings['port']
-        if host == '0.0.0.0':
-            host = '127.0.0.1'
         api = httpx.AsyncClient(base_url=f'http://{host}:{port}/')
         app.state[api_name + '_api'] = api
 

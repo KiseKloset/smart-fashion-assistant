@@ -16,10 +16,10 @@ fsvton_model = {
                 'gen': None,
             }
 
-u2net_pretrained_path = 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\u2net\\ckp\\u2netp\\u2netp.pth'
+u2net_pretrained_path = '/code/app/src/tryon/u2net/ckp/u2netp/u2netp.pth'
 fsvton_pretrained_path = {
-                            'warp': 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\inference_flow_style_vton\\ckp\\aug\\PFAFN_warp_epoch_101.pth',
-                            'gen': 'N:\\Lucky\\CNTN\\Thesis\\demo\\smart-fashion-fastapi\\try_on_api\\src\\try_on\\inference_flow_style_vton\\ckp\\aug\\PFAFN_gen_epoch_101.pth',
+                            'warp': '/code/app/src/tryon/inference_flow_style_vton/ckp/aug/PFAFN_warp_epoch_101.pth',
+                            'gen': '/code/app/src/tryon/inference_flow_style_vton/ckp/aug/PFAFN_gen_epoch_101.pth',
                         }
 
 
