@@ -83,11 +83,12 @@ def infer_tryon(images):
 
 
 def run_tryon(person_image: bytes, cloth_image: bytes):
+    IMAGE_SIZE = (192, 256)
     convert_tensor = transforms.ToTensor()
     to_pil = transforms.ToPILImage()
 
-    pil_person = Image.open(person_image).convert("RGB").resize((192, 256))
-    pil_cloth = Image.open(cloth_image).convert("RGB").resize((192, 256))
+    pil_person = Image.open(person_image).convert("RGB").resize(IMAGE_SIZE)
+    pil_cloth = Image.open(cloth_image).convert("RGB").resize(IMAGE_SIZE)
     person = convert_tensor(pil_person)
     cloth = convert_tensor(pil_cloth)
 
