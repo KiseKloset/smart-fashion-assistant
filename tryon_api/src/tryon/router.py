@@ -2,7 +2,7 @@ import base64
 from io import BytesIO
 
 from fastapi import APIRouter, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse
 from .service import run_tryon
 
 
@@ -25,7 +25,11 @@ async def try_on_cloth(person_image: UploadFile, cloth_image: UploadFile):
     base64_string = "data:image/jpeg;base64,"+base64.b64encode(image_buffer.getvalue()).decode()
     
     # return StreamingResponse(image_buffer, media_type="image/jpeg")
-    return base64_string
+    return  JSONResponse(content={
+                            'message': 'success',
+                            'result': base64_string,
+                        }
+                    )
 
 
 
