@@ -1,7 +1,6 @@
-const refImageInput = document.getElementById('nguyen-ref-image');
-const clothImageInput = document.getElementById('nguyen-cloth-image');
+const personImageInput = document.getElementById('nguyen-person-image-uploader');
+const clothImageInput = document.getElementById('nguyen-cloth-image-uploader');
 const resultImage = document.getElementById('nguyen-result-image');
-const tryOnImages = {}
 
 function uploadReferenceImage(id) {
     const imageInput = document.getElementById(id);
@@ -25,8 +24,8 @@ function uploadReferenceImageInternal(element, imgID) {
 }
 
 function tryOn() {
-    if (refImageInput.files.length < 1) {
-        window.alert("Upload reference image first");
+    if (personImageInput.files.length < 1) {
+        window.alert("Upload person image first");
         return;
     }
     if (clothImageInput.files.length < 1) {
@@ -35,7 +34,7 @@ function tryOn() {
     }
 
     const body = new FormData();
-    body.append("person_image", refImageInput.files[0]);
+    body.append("person_image", personImageInput.files[0]);
     body.append("cloth_image", clothImageInput.files[0]);
 
     fetch('/try-on/try-on', {
