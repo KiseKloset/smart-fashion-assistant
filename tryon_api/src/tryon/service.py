@@ -86,8 +86,10 @@ def run_tryon(person_image: bytes, cloth_image: bytes):
     convert_tensor = transforms.ToTensor()
     to_pil = transforms.ToPILImage()
 
-    person = convert_tensor(Image.open(person_image).convert("RGB"))
-    cloth = convert_tensor(Image.open(cloth_image).convert("RGB"))
+    pil_person = Image.open(person_image).convert("RGB").resize((192, 256))
+    pil_cloth = Image.open(cloth_image).convert("RGB").resize((192, 256))
+    person = convert_tensor(pil_person)
+    cloth = convert_tensor(pil_cloth)
 
     # Segment cloth
     edge = infer_u2net(cloth)
