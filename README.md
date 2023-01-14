@@ -11,4 +11,4 @@
 2. `./main.sh`
 
 ## TODO
-[ ] Host on a Public IP
+- Host on a Public IP
