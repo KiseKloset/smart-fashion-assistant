@@ -15,3 +15,6 @@
 ## Afterward
 1. `conda activate smart_fashion`
 2. `./main.sh`
+
+## TODO
+- Host on a Public IP
