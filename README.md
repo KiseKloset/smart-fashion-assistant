@@ -11,5 +11,4 @@
 2. `./main.sh`
 
 ## TODO
-1. Run Dockerfile on GPU
-2. Host on a Public IP
+[ ] Host on a Public IP
