@@ -40,8 +40,9 @@ async def shutdown_event():
 async def _retrieval_reverse_proxy(request: Request):
     api = request.app.state.tgir_api
     url = httpx.URL(path=request.url.path, query=request.url.query.encode('utf-8'))
+    timeout = httpx.Timeout(10.0, read=None)
     req = api.build_request(
-        request.method, url, headers=request.headers.raw, content=request.stream()
+        request.method, url, headers=request.headers.raw, content=request.stream(), timeout=timeout
     )
     r = await api.send(req, stream=True)
     return StreamingResponse(
@@ -59,8 +60,9 @@ app.add_route('/static/images/{image:path}', _retrieval_reverse_proxy, ['GET'])
 async def _retrieval_reverse_proxy(request: Request):
     api = request.app.state.tryon_api
     url = httpx.URL(path=request.url.path, query=request.url.query.encode('utf-8'))
+    timeout = httpx.Timeout(10.0, read=None)
     req = api.build_request(
-        request.method, url, headers=request.headers.raw, content=request.stream()
+        request.method, url, headers=request.headers.raw, content=request.stream(), timeout=timeout
     )
     r = await api.send(req, stream=True)
     return StreamingResponse(
