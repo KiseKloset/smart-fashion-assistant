@@ -15,6 +15,7 @@ ROOT = FILE.parent
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=ROOT / "static"))
+app.include_router(tryon.router.router, prefix="/try-on")
 
 # Preload model 
 @app.on_event('startup')
@@ -29,6 +30,22 @@ async def startup_event():
     app.state.dataset_index_names = dataset_index_names
     app.state.dataset_index_features = dataset_index_features
     setattr(app.state, api_name + "_api", api)
+
+
+# Exception handler
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Get the original 'detail' list of errors
+    details = exc.errors()
+    error_details = []
+
+    for error in details:
+        error_details.append(
+            {
+                "error": error["msg"] + " " + str(error["loc"])
+            }
+        )
+    return JSONResponse(content={"message": error_details})
 
 
 # Fashion retrieval
