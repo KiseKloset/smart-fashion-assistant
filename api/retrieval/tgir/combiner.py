@@ -4,16 +4,7 @@ import torch.nn.functional as F
 
 
 class Combiner(nn.Module):
-    """
-    Combiner module which once trained fuses textual and visual information
-    """
-
     def __init__(self, clip_feature_dim: int, projection_dim: int, hidden_dim: int):
-        """
-        :param clip_feature_dim: CLIP input feature dimension
-        :param projection_dim: projection dimension
-        :param hidden_dim: hidden dimension
-        """
         super(Combiner, self).__init__()
         self.text_projection_layer = nn.Linear(clip_feature_dim, projection_dim)
         self.image_projection_layer = nn.Linear(clip_feature_dim, projection_dim)
@@ -30,30 +21,16 @@ class Combiner(nn.Module):
 
         self.logit_scale = 100
 
-    def forward(self, image_features: torch.tensor, text_features: torch.tensor,
-                target_features: torch.tensor) -> torch.tensor:
-        """
-        Takes as input a triplet: image_features, text_features and target_features and outputs the logits which are
-        the normalized dot product between the predicted features and the target_features.
-        The logits are also multiplied by logit_scale parameter
-        :param image_features: CLIP reference image features
-        :param text_features: CLIP relative caption features
-        :param target_features: CLIP target image features
-        :return: scaled logits
-        """
+
+    def forward(self, image_features: torch.tensor, text_features: torch.tensor, target_features: torch.tensor) -> torch.tensor:
         predicted_features = self.combine_features(image_features, text_features)
         target_features = F.normalize(target_features, dim=-1)
 
         logits = self.logit_scale * predicted_features @ target_features.T
         return logits
 
+
     def combine_features(self, image_features: torch.tensor, text_features: torch.tensor) -> torch.tensor:
-        """
-        Combine the reference image features and the caption features. It outputs the predicted features
-        :param image_features: CLIP reference image features
-        :param text_features: CLIP relative caption features
-        :return: predicted features
-        """
         text_projected_features = self.dropout1(F.relu(self.text_projection_layer(text_features)))
         image_projected_features = self.dropout2(F.relu(self.image_projection_layer(image_features)))
 
