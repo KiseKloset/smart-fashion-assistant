@@ -12,14 +12,14 @@ from tqdm import tqdm
 
 
 FILE = Path(__file__).resolve()
-ROOT = FILE.parents[0]  # YOLOv5 root directory
+ROOT = FILE.parent  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 
 
-from clip4cir.utils import collate_fn
-from clip4cir.combiner import Combiner
-from clip4cir.data_utils import *
+from tgir.utils import collate_fn
+from tgir.combiner import Combiner
+from tgir.data_utils import *
 
 
 clip_model: nn.Module = None
