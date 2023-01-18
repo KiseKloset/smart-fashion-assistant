@@ -1,14 +1,7 @@
-import sys
-import clip
-import torch
-import pickle
+import sys, json, pickle, torch, PIL.Image
 import numpy as np
 
-from typing import Tuple
 from pathlib import Path
-from torch import nn
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 
 FILE = Path(__file__).resolve()
@@ -17,159 +10,99 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 
 
-from tgir.utils import collate_fn
-from tgir.combiner import Combiner
-from tgir.data_utils import *
+from model.clip4cir import CLIP4CirModule
+from model.outfits_transformer import OutfitsTransformerModule
 
 
-clip_model: nn.Module = None
-combiner: Combiner = None
+def preload(device):
+    pretrained_dir = ROOT / "pretrained"
+    data_dir = ROOT / "dataset"
+    content = {}
 
-dataset_name = "FashionIQ"
-base_path = str(FILE.parent.parent)
-data_path = f"{base_path}/dataset/fashioniq"
-clip_pretrained_path = f"{base_path}/tgir/clip4cir/fiq_clip_RN50x4_fullft.pt"
-comb_pretrained_path = f"{base_path}/tgir/clip4cir/fiq_comb_RN50x4_fullft.pt"
+    # Load models
+    content["models"] = {}
+    content["models"]["clip4cir"] = CLIP4CirModule(pretrained_dir / "clip.pt", pretrained_dir / "clip_ft.pt", pretrained_dir / "combiner.pt", device)
+    content["models"]["outfits_transformer"] = OutfitsTransformerModule(pretrained_dir / "outfits_transformer.pt", device)
 
+    # Load item names
+    with open(data_dir / f"polyvore_index_names.pkl", "rb") as f:
+        content["index_names"] = np.array(pickle.load(f))
 
-def get_device():
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+    # Load item embeddings
+    content["index_embeddings"] = torch.nn.functional.normalize((
+        torch.load(data_dir / "polyvore_index_embeddings.pt", map_location=device).type(torch.float32)
+    ))
 
+    # Load item metadatas
+    content["index_metadatas"] = {}
+    with open(data_dir / "polyvore_item_metadata.json", "r") as f:
+        data = json.load(f)
 
-def get_data_type():
-    if torch.cuda.is_available():
-        return torch.float16
-    return torch.float32
+        for idx, name in enumerate(content["index_names"]):
+            if name in data:
+                category = data[name]["semantic_category"]
+                content["index_metadatas"][idx] = { "category": category }
 
+    # Load categories
+    content["categories"] = [
+        "all-body",
+        "bags",
+        "tops",
+        "outerwear",
+        "hats",
+        "bottoms",
+        "scarves",
+        "jewellery",
+        "accessories",
+        "shoes",
+        "sunglasses"
+    ]
 
-def load_models() -> Tuple[nn.Module, Combiner]:
-    device = get_device()
-
-    clip_model, _ = clip.load("/code/app/src/tgir/clip4cir/RN50x4.pt", device=device, jit=False)
-    clip_state_dict = torch.load(clip_pretrained_path, map_location=device)
-    clip_model.load_state_dict(clip_state_dict["CLIP"])
-
-    # To load a trained combiner network
-    feature_dim = clip_model.visual.output_dim
-    combiner = Combiner(feature_dim, 2560, 5120)
-    combiner.to(device)
-    combiner_state_dict = torch.load(comb_pretrained_path, map_location=device)
-    combiner.load_state_dict(combiner_state_dict["Combiner"])
-    combiner.eval()
-
-    return clip_model, combiner
-
-
-def extract_and_save_index_features(
-    dataset: FashionIQDataset, clip_model: nn.Module, feature_dim: int, file_name: str
-):
-    device = get_device()
-
-    dataloader = DataLoader(
-        dataset=dataset,
-        batch_size=32,
-        num_workers=8,
-        pin_memory=True,
-        collate_fn=collate_fn,
-    )
-    index_features = torch.empty((0, feature_dim), dtype=torch.float16).to(device)
-    index_names = []
-
-    # iterate over the dataset object
-    for names, images in tqdm(dataloader):
-        images = images.to(device)
-
-        # extract and concatenate features and names
-        with torch.no_grad():
-            batch_features = clip_model.encode_image(images)
-            index_features = torch.vstack((index_features, batch_features))
-            index_names.extend(names)
-
-    # save the extracted features
-    out_path = Path(data_path).absolute()
-    out_path.mkdir(exist_ok=True, parents=True)
-    torch.save(index_features, out_path / f"{file_name}_index_features.pt")
-    with open(out_path / f"{file_name}_index_names.pkl", "wb+") as f:
-        pickle.dump(index_names, f)
+    return content
 
 
-def preprocess_dataset(clip_model: nn.Module):
-    input_dim = clip_model.visual.input_resolution
-    feature_dim = clip_model.visual.output_dim
-
-    preprocess = targetpad_transform(1.25, input_dim)
-    test_dataset = FashionIQDataset(data_path, "test", preprocess)
-    extract_and_save_index_features(test_dataset, clip_model, feature_dim, dataset_name)
+def tgir(image: PIL.Image.Image, caption: str, api_content: dict):
+    return api_content["models"]["clip4cir"](image, caption)
 
 
-def load_preprocess_dataset() -> Tuple[list, torch.Tensor]:
-    path = Path(data_path).absolute()
-    device = get_device()
-    data_type = get_data_type()
+def ocir(image: PIL.Image.Image, category: str, api_content: dict):
+    embedding = api_content["models"]["clip4cir"].encode_image(image)
 
-    dataset_index_features = (
-        torch.load(path / f"{dataset_name}_index_features.pt", map_location=device)
-        .type(data_type)
-        .cpu()
-    )
+    if category not in api_content["categories"]:
+        return { i: [] for i in api_content["categories"]}
 
-    with open(path / f"{dataset_name}_index_names.pkl", "rb") as f:
-        dataset_index_names = pickle.load(f)
+    idx = api_content["categories"].index(category)
+    mask = torch.full((len(api_content["categories"]),), False)
+    mask[idx] = True 
+
+    output =  api_content["models"]["outfits_transformer"](embedding, mask)
+    return dict(zip(api_content["categories"], output))
+
+
+def query_top_k_items(embedding, category, top_k, api_content: dict):
+    device = api_content["index_embeddings"].device
+    metadatas = api_content["index_metadatas"]
+
+    if category in api_content["categories"]:
+        indices = np.array([i for i in metadatas if metadatas[i]["category"] == category])
+    else:
+        indices = np.arange(len(api_content["index_embeddings"]))
+        
+    index_embeddings = api_content["index_embeddings"][indices]
+
+    embedding = embedding.unsqueeze(0).to(device)
+    cos_similarity = embedding @ index_embeddings.transpose(0, 1)
+    sorted_indices = torch.topk(cos_similarity, top_k, dim=1, largest=True).indices
+
+    return indices[sorted_indices.flatten().cpu().numpy()]
+
+
+def get_category(item_index, api_content: dict):
+    if item_index in api_content["index_metadatas"]:
+        return api_content["index_metadatas"][item_index]["category"]
     
-    return dataset_index_names, dataset_index_features
+    return None
 
 
-def load_dataset_metadata() -> dict:
-    dataset_metadata = {}
-
-    dress_types = ["dress", "shirt", "toptee"]
-    for dress_type in dress_types:
-        splits = ["train", "val", "test"]
-        for split in splits:
-            with open(f"{data_path}/image_splits/split.{dress_type}.{split}.json") as f:
-                images = json.load(f)
-                for image in images:
-                    dataset_metadata[image] = {
-                        "category": dress_type,
-                        "url": f"/static/images/{image}.png",
-                    }
-
-    return dataset_metadata
-
-
-def compute_fashionIQ_results(
-    image: bytes, 
-    caption: str, 
-    n_retrieved: int, 
-    clip_model: nn.Module,
-    combiner: Combiner,
-    dataset_index_names: list, 
-    dataset_index_features: torch.Tensor
-):
-    device = get_device()
-    data_type = get_data_type()
-
-    index_names = dataset_index_names
-    index_features = dataset_index_features.to(device)
-
-    pil_image = PIL.Image.open(image).convert("RGB")
-    input_dim = clip_model.visual.input_resolution
-    image = targetpad_transform(1.25, input_dim)(pil_image).to(device)
-    reference_features = clip_model.encode_image(image.unsqueeze(0))
-
-    text_inputs = clip.tokenize(caption, truncate=True).to(device)
-
-    with torch.no_grad():
-        text_features = clip_model.encode_text(text_inputs)
-        predicted_features = combiner.combine_features(
-            reference_features.float(), text_features.float()
-        ).to(data_type).squeeze(0)
-
-    index_features = torch.nn.functional.normalize(index_features)
-    cos_similarity = index_features @ predicted_features.T
-    sorted_indices = torch.topk(cos_similarity, n_retrieved, largest=True).indices.cpu()
-    sorted_index_names = np.array(index_names)[sorted_indices].flatten()
-
-    return sorted_index_names
+def get_item_name(item_index, api_content: dict):
+    return api_content["index_names"][item_index]

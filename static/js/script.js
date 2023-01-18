@@ -34,7 +34,7 @@ function queryImages() {
     body.append("ref_image", refImageInput.files[0]);
     body.append("caption", captionInput.value);
 
-    fetch('/tgir/retrieve', {
+    fetch('/retrieval/', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
