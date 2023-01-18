@@ -1,13 +1,14 @@
 import uvicorn
-import httpx
 
 from pathlib import Path
-from fastapi import FastAPI, status, Request
-from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.background import BackgroundTask
 
 from config import settings
+from api.retrieval import service
+from api.retrieval.router import router as retrieval_router
+
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parent
@@ -17,19 +18,12 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=ROOT / "static"))
 app.include_router(tryon.router.router, prefix="/try-on")
 
-# Preload model 
+
+# Preload model, data, ...
 @app.on_event('startup')
 async def startup_event():
-    clip_model, combiner = service.load_models()
-    dataset_metadata = service.load_dataset_metadata()
-    dataset_index_names, dataset_index_features = service.load_preprocess_dataset()
-    
-    app.state.clip_model = clip_model
-    app.state.combiner = combiner
-    app.state.dataset_metadata = dataset_metadata
-    app.state.dataset_index_names = dataset_index_names
-    app.state.dataset_index_features = dataset_index_features
-    setattr(app.state, api_name + "_api", api)
+    app.state.static_files = { "directory": str(ROOT / "static"), "prefix": "/static" }
+    app.state.retrieval_content = service.preload("cpu")
 
 
 # Exception handler
@@ -54,6 +48,8 @@ async def home():
     with open(ROOT / "templates/index.html") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content, status_code=200)
+
+app.include_router(retrieval_router, prefix="/retrieval")
 
 
 # Virtual try-on entry

@@ -12,4 +12,4 @@ pandas==1.4.2
 Pillow==9.4.0
 torch==1.11.0
 torchvision==0.12.0
-clip==0.2.0
+git+https://github.com/openai/CLIP.git@main#clip
