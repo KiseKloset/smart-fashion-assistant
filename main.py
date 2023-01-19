@@ -2,12 +2,14 @@ import uvicorn
 
 from pathlib import Path
 from fastapi import FastAPI, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import settings
 from api.retrieval import service
 from api.retrieval.router import router as retrieval_router
+from api.tryon.router import router as tryon_router
 
 
 FILE = Path(__file__).resolve()
@@ -16,7 +18,6 @@ ROOT = FILE.parent
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=ROOT / "static"))
-app.include_router(tryon.router.router, prefix="/try-on")
 
 
 # Preload model, data, ...
@@ -28,7 +29,7 @@ async def startup_event():
 
 # Exception handler
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request, exc):
     # Get the original 'detail' list of errors
     details = exc.errors()
     error_details = []
@@ -59,6 +60,7 @@ async def try_on():
         html_content = f.read()
     return HTMLResponse(content=html_content, status_code=200)
 
+app.include_router(tryon_router, prefix="/try-on")
 
 # Useless
 @app.get("/health", status_code=status.HTTP_200_OK)

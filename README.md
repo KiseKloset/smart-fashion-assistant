@@ -1,11 +1,26 @@
 # How to use
 
-## First time
-1. `conda create -n smart_fashion python=3.8`
-2. `conda activate smart_fashion`
-3. `pip install -r ./main_entry/requirements.txt`
-4. `./main.sh`
+## Quick start
+```
+docker build -t smart-fashion .
 
-## Afterward
-1. `conda activate smart_fashion`
-2. `./main.sh`
+docker run -d --name smart-fashion-container -p 8080:8080 smart-fashion
+```
+
+Website: `127.0.0.1:8080`
+## Check Docker status
+```
+docker logs smart-fashion-container
+```
+
+## Remove
+### 1. Container
+```
+docker stop smart-fashion-container
+docker rm smart-fashion-container
+```
+
+### 2. Image
+```
+docker rmi smart-fashion
+```
