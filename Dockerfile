@@ -2,7 +2,7 @@ FROM python:3.9
 
 # Prepare work directory
 WORKDIR /code
-COPY ./requirements.txt /code/requirements.txt
+COPY ./src/requirements.txt /code/requirements.txt
 
 # Install dependencies
 RUN apt-get update && apt-get install -y unzip
@@ -33,8 +33,7 @@ RUN gdown "1pYrLujkd2gmQGqtnROCzSSnVwbMh9DnP&confirm=t" -O '/code/app/api/tryon/
 RUN unzip /code/app/api/tryon/inference_flow_style_vton/ckp.zip -d /code/app/api/tryon/inference_flow_style_vton/
 RUN rm /code/app/api/tryon/inference_flow_style_vton/ckp.zip
 
-
-COPY . /code/app
+COPY ./src /code/app
 RUN mv /code/app/.env.sample /code/app/.env
 
 CMD ["python", "/code/app/main.py"]

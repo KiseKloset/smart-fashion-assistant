@@ -41,7 +41,7 @@ async def image_retrieval(ref_image: UploadFile = File(), caption: str = Form(""
         return JSONResponse(content=response, status_code=200)
 
     # Add TGIR results to response
-    response["target_" + target_category] = []
+    response["Target " + target_category] = []
     target_image_indices = query_top_k_items(target_embedding, target_category, 5, api_content)
 
     for index in target_image_indices:
@@ -72,7 +72,7 @@ async def image_retrieval(ref_image: UploadFile = File(), caption: str = Form(""
         for index in image_indices:
             item_name = get_item_name(index, api_content)
             item_url = item_name_to_url(item_name, request.app)
-            response["comp_" + category].append({ "id": item_name,  "url": item_url }) 
+            response["Comp " + category].append({ "id": item_name,  "url": item_url }) 
 
     end = time.time()
     print("Query comp images:", end - start)
