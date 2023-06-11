@@ -21,17 +21,21 @@
             <div id="nguyen-person-image-container" class="input-div">
                 <p class="text-center">Person image</p>
                 <img id="nguyen-person-image" class="center image-fit-parent">
+                <video class="center image-fit-parent" id="nguyen-person-camera" style="display: none">Video stream not available.</video>
+                <canvas id="nguyen-person-camera-canvas" style="display: none"></canvas>
                 <input type="file" id="nguyen-person-image-uploader" class="image-uploader" accept="image/*"
                     onChange="uploadReferenceImageInternal(this, 'nguyen-person-image')">
                 <button class="center" onclick="uploadReferenceImage('nguyen-person-image-uploader')">Upload
                     image</button>
+                <button class="center" id="nguyen-person-image-camera" onclick="capture()">Camera 
+                    capture</button>
             </div>
-            <div id="nguyen-cloth-image-container" class="input-div">
-                <p class="text-center">Cloth image</p>
-                <img id="nguyen-cloth-image" class="center image-fit-parent">
-                <input type="file" id="nguyen-cloth-image-uploader" class="image-uploader" accept="image/*"
-                    onChange="uploadReferenceImageInternal(this, 'nguyen-cloth-image')">
-                <button class="center" onclick="uploadReferenceImage('nguyen-cloth-image-uploader')">Upload
+            <div id="nguyen-garment-image-container" class="input-div">
+                <p class="text-center">Garment image</p>
+                <img id="nguyen-garment-image" class="center image-fit-parent">
+                <input type="file" id="nguyen-garment-image-uploader" class="image-uploader" accept="image/*"
+                    onChange="uploadReferenceImageInternal(this, 'nguyen-garment-image')">
+                <button class="center" onclick="uploadReferenceImage('nguyen-garment-image-uploader')">Upload
                     image</button>
             </div>
         </div>
@@ -44,6 +48,7 @@
     </div>
 
     <script src="/static/js/tryon.js"></script>
+    <script src="/static/js/capture.js"></script>
     </body>
 
 

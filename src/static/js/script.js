@@ -25,13 +25,10 @@ function uploadReferenceImageInternal(element) {
 }
 
 function queryImages() {
-    if (refImageInput.files.length < 1) {
-        window.alert("Upload reference image first");
-        return;
-    }
-
     const body = new FormData();
-    body.append("ref_image", refImageInput.files[0]);
+    if (refImageInput.files.length >= 1) {
+        body.append("ref_image", refImageInput.files[0]);
+    }
     body.append("caption", captionInput.value);
 
     fetch('/retrieval/', {

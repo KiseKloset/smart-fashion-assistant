@@ -1,6 +1,7 @@
 import io
 import time
 import PIL.Image
+from typing import Union
 
 from fastapi import APIRouter, UploadFile, Request, Form, File
 from fastapi.responses import JSONResponse
@@ -11,10 +12,13 @@ router = APIRouter()
 
 
 @router.post("/")
-async def image_retrieval(ref_image: UploadFile = File(), caption: str = Form(""), request: Request = None):
-    ref_image_content = await ref_image.read()
-    image = io.BytesIO(ref_image_content)
-    pil_image = PIL.Image.open(image).convert("RGB")
+async def image_retrieval(ref_image: Union[UploadFile, None] = None, caption: str = Form(""), request: Request = None):
+    if ref_image is not None:
+        ref_image_content = await ref_image.read()
+        image = io.BytesIO(ref_image_content)
+        pil_image = PIL.Image.open(image).convert("RGB")
+    else:
+        pil_image = PIL.Image.new('RGB', (192, 256), color=(255, 255, 255))
 
     api_content = request.app.state.retrieval_content
 
