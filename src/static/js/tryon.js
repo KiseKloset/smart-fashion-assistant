@@ -1,13 +1,16 @@
 const personImageInput = document.getElementById('nguyen-person-image-uploader');
-const clothImageInput = document.getElementById('nguyen-cloth-image-uploader');
+const garmentImageInput = document.getElementById('nguyen-garment-image-uploader');
 const resultImage = document.getElementById('nguyen-result-image');
 
 function uploadReferenceImage(id) {
     const imageInput = document.getElementById(id);
+    imageInput.files = (new DataTransfer()).files;
     imageInput.click();
 }
 
 function uploadReferenceImageInternal(element, imgID) {
+    if (element.files.length < 1) return;
+
     const refImage = document.getElementById(imgID);
     const file = element.files[0];
     const imageType = /image.*/;
@@ -28,14 +31,14 @@ function tryOn() {
         window.alert("Upload person image first");
         return;
     }
-    if (clothImageInput.files.length < 1) {
-        window.alert("Upload cloth image first");
+    if (garmentImageInput.files.length < 1) {
+        window.alert("Upload garment image first");
         return;
     }
 
     const body = new FormData();
     body.append("person_image", personImageInput.files[0]);
-    body.append("cloth_image", clothImageInput.files[0]);
+    body.append("garment_image", garmentImageInput.files[0]);
 
     fetch('/try-on/try-on', {
         method: 'POST',
