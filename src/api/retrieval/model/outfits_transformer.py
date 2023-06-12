@@ -84,7 +84,7 @@ class OutfitsTransformer(nn.Module):
 class OutfitsTransformerModule:
     def __init__(self, pretrained_path, device):
         self.device = device
-        self.model = OutfitsTransformer(11, 640, 16, 6).to(device)
+        self.model = OutfitsTransformer(11, 640, 8, 6).to(device)
         state_dict = torch.load(pretrained_path, map_location=device)
         self.model.load_state_dict(state_dict)
         self.model.eval()
