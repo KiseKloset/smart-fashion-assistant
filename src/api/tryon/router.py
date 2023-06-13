@@ -21,7 +21,7 @@ tryon_service = TryonService(
     tryon_ckpt={'warp': 'mobile_warp.pt', 'gen': 'mobile_gen.pt'},
     edge_detect_ckpt='u2netp.pt', 
     yolo_ckpt='yolov7-w6-pose.pt',
-    device='cpu',
+    device='cuda:0',
 )
 
 
