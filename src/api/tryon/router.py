@@ -26,7 +26,7 @@ tryon_service = TryonService(
 
 
 @router.post('/try-on')
-async def try_on_image(person_image: bytes = UploadFile, garment_image: bytes = UploadFile):
+async def try_on_image(person_image: UploadFile, garment_image: UploadFile):
     person_image_content = await person_image.read()
     cloth_image_content = await garment_image.read()
 
