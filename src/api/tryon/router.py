@@ -1,37 +1,51 @@
 import base64
+from PIL import Image
 from io import BytesIO
 
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import JSONResponse
-from .service import run_tryon
+import torchvision as tv
+
+from .service import TryonService
+from .utils import gdrive_download, url_download
 
 
 router = APIRouter()
 
+gdrive_download(url='https://drive.google.com/uc?id=1rbSTGKAE-MTxBYHd-51l2hMOQPT_7EPy', output='u2netp.pt')
+gdrive_download(url='https://drive.google.com/uc?id=1ngpLuaiDbMBT2qrxft82Ujy_rxggsvyZ', output='mobile_warp.pt')
+gdrive_download(url='https://drive.google.com/uc?id=1eAAMkxFDum1sKPqyi1BSQ1aRc69T5onI', output='mobile_gen.pt')
+url_download(url='https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt', output='yolov7-w6-pose.pt')
+
+tryon_service = TryonService(
+    tryon_ckpt={'warp': 'mobile_warp.pt', 'gen': 'mobile_gen.pt'},
+    edge_detect_ckpt='u2netp.pt', 
+    yolo_ckpt='yolov7-w6-pose.pt',
+    device='cpu',
+)
+
 
 @router.post('/try-on')
-async def try_on_cloth(person_image: UploadFile, cloth_image: UploadFile):
+async def try_on_image(person_image: bytes = UploadFile, garment_image: bytes = UploadFile):
     person_image_content = await person_image.read()
-    cloth_image_content = await cloth_image.read()
-    person = BytesIO(person_image_content)
-    cloth = BytesIO(cloth_image_content)
+    cloth_image_content = await garment_image.read()
 
-    pil_image = run_tryon(person, cloth)
+    pil_img = Image.open(BytesIO(person_image_content))
+    pil_clothes = Image.open(BytesIO(cloth_image_content))
+
+    tryon_tensor = tryon_service.tryon_image(pil_img, pil_clothes)
+    pil_tryon = tv.transforms.ToPILImage()(tryon_tensor)
 
     image_buffer = BytesIO()
-    pil_image.save(image_buffer, format='JPEG')
+    pil_tryon.save(image_buffer, 'JPEG')
     image_buffer.seek(0)
 
     base64_string = "data:image/jpeg;base64,"+base64.b64encode(image_buffer.getvalue()).decode()
     
-    # return StreamingResponse(image_buffer, media_type="image/jpeg")
     return  JSONResponse(content={
                             'message': 'success',
                             'result': base64_string,
                         }
                     )
-
-
-
 
 

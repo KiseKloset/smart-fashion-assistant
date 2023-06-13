@@ -18,11 +18,11 @@ def load_model(checkpoints, device=torch.device('cpu')):
     warp_model = AFWM(input_nc=3)
     warp_model.eval()
     warp_model.to(device)
-    load_checkpoint(warp_model, checkpoints['warp'], device)
+    # load_checkpoint(warp_model, checkpoints['warp'], device)
     gen_model = ResUnetGenerator(7, 4, 5, ngf=64, norm_layer=nn.BatchNorm2d)
     gen_model.eval()
     gen_model.to(device)
-    load_checkpoint(gen_model, checkpoints['gen'], device)
+    # load_checkpoint(gen_model, checkpoints['gen'], device)
 
     return {'warp': warp_model, 'gen': gen_model}
 

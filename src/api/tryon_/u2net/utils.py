@@ -25,7 +25,7 @@ def load_model(model_name, checkpoint, device=torch.device('cuda')):
         print("\t[-] Load U2NEP---4.7 MB")
         net = U2NETP(3,1)
 
-    net.load_state_dict(torch.load(checkpoint, map_location=device))
+    # net.load_state_dict(torch.load(checkpoint, map_location=device))
     net.to(device)
     net.eval()
 
