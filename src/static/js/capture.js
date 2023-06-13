@@ -19,7 +19,7 @@ function startCapture() {
 
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-    navigator.mediaDevices.getUserMedia({video: true, audio: false})
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then((stream) => {
             captureButton.innerText = "Take photo";
             camera.srcObject = stream;
@@ -33,6 +33,7 @@ function startCapture() {
         if (!streaming) {
             let width = 300;
             let = height = camera.videoHeight / (camera.videoWidth / width);
+            personImageHolder.style.display = "none"
             camera.style.display = "block";
             camera.setAttribute('width', width);
             camera.setAttribute('height', height);
@@ -61,7 +62,7 @@ function takePhoto() {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             input.files = dataTransfer.files;
-          });
+        });
     }
 }
 
@@ -77,5 +78,6 @@ function stopCapture() {
         streaming = false;
         camera.srcObject = null;
         camera.style.display = "none";
+        personImageHolder.style.display = "block"
     }
 }
