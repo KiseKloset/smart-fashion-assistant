@@ -33,8 +33,11 @@ async def try_on_image(person_image: UploadFile, garment_image: UploadFile):
     pil_img = Image.open(BytesIO(person_image_content))
     pil_clothes = Image.open(BytesIO(cloth_image_content))
 
-    tryon_tensor = tryon_service.tryon_image(pil_img, pil_clothes)
-    pil_tryon = tv.transforms.ToPILImage()(tryon_tensor)
+    tryon_cv = tryon_service.tryon_image(pil_img, pil_clothes)
+    if tryon_cv is not None:
+        pil_tryon = Image.fromarray(tryon_cv)
+    else:
+        pil_tryon = pil_img
 
     image_buffer = BytesIO()
     pil_tryon.save(image_buffer, 'JPEG')

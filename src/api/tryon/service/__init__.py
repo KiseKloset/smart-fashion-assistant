@@ -65,11 +65,19 @@ class TryonService:
                 break
                     
 
+    @torch.no_grad()
     def tryon_image(self, pil_img, pil_clothes, pil_edge=None) -> Any:
+        original_image = np.asarray(pil_img)
+
+        cropped_result, frame = self._preprocess_frame(original_image)
+        if frame is None:
+            return None
+
         transform_image = get_transform(train=False)
         transform_edge = get_transform(train=False, method=Image.NEAREST, normalize=False)
 
-        pil_img, pil_clothes = self._preprocess_image(pil_img), self._preprocess_image(pil_clothes)
+        pil_img = Image.fromarray(frame)
+        pil_clothes = self._preprocess_image(pil_clothes)
 
         img = transform_image(pil_img)
         clothes = transform_image(pil_clothes)
@@ -79,7 +87,15 @@ class TryonService:
         else:
             clothes_edge = self._predict_edge(clothes)
         
-        return (self._predict_tryon(img, clothes, clothes_edge) + 1)/2
+        cv_img = (self._predict_tryon(img, clothes, clothes_edge).permute(1, 2, 0).detach().cpu().numpy() + 1) / 2
+        rgb = (cv_img*255).astype(np.uint8)
+
+        t, l, b, r = cropped_result['t'], cropped_result['l'], cropped_result['b'], cropped_result['r']
+        cropped_output = cv2.resize(rgb, (r - l, b - t))
+        output = original_image.copy()
+        output[t:b, l:r, :] = cropped_output
+        return output
+    
 
     def _preprocess_image(self, pil_img, color='RGB'):
         pil_img = pil_img.convert(color).resize(self.img_size)
@@ -101,7 +117,6 @@ class TryonService:
             width = frame.shape[1]
             height = int(self.img_size[1] * width / self.img_size[0])
             
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         center = (frame.shape[0] // 2, frame.shape[1] // 2)
         x = center[1] - width // 2
         y = center[0] - height // 2
