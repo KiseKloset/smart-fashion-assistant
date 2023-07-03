@@ -30,8 +30,8 @@ async def try_on_image(person_image: UploadFile, garment_image: UploadFile):
     person_image_content = await person_image.read()
     cloth_image_content = await garment_image.read()
 
-    pil_img = Image.open(BytesIO(person_image_content))
-    pil_clothes = Image.open(BytesIO(cloth_image_content))
+    pil_img = Image.open(BytesIO(person_image_content)).convert('RGB')
+    pil_clothes = Image.open(BytesIO(cloth_image_content)).convert('RGB')
 
     tryon_cv = tryon_service.tryon_image(pil_img, pil_clothes)
     if tryon_cv is not None:

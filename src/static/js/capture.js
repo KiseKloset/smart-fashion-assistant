@@ -8,22 +8,56 @@ let streaming = false;
 
 function capture() {
     if (!streaming) {
-        startCapture();
+        queryCamera();
     } else {
         takePhoto();
         stopCapture();
     }
 }
 
-function startCapture() {
+function queryCamera() {
+    navigator.mediaDevices.enumerateDevices()
+        .then(function (videoDevices) {
+    
+        // Check if there are multiple cameras available
+        console.error(videoDevices.length);
+        if (videoDevices.length > 0) {
+            startCapture(videoDevices[videoDevices.length - 1].deviceId);
+        } else {
+            // No cameras available
+            console.error('No cameras found.');
+        }
+        })
+        .catch(function (error) {
+        console.error('Error enumerating devices:', error);
+        });
+}
 
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+function startCapture(deviceId) {
+    const constraints = { video: { deviceId: deviceId  } };
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
             captureButton.innerText = "Take photo";
             camera.srcObject = stream;
             camera.play();
+
+            // Get the video track from the stream
+            var videoTrack = stream.getVideoTracks()[0];
+
+            // Check if the 'applyConstraints' method is available
+            if ('applyConstraints' in videoTrack) {
+            // Define the brightness constraint
+            var constraints = { advanced: [{ brightness: 0 }] };
+
+            // Apply the brightness constraint to the video track
+            videoTrack.applyConstraints(constraints)
+                .catch(function (error) {
+                console.error('Error applying constraints:', error);
+                });
+            } else {
+            console.warn('Brightness adjustment not supported.');
+            }
         })
         .catch((err) => {
             console.log("An error occurred: " + err);
